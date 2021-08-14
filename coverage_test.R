@@ -1,3 +1,5 @@
+setwd("quantile-evaluation")
+
 library(tidyverse)
 
 test_coverage_old <- function(df, verbose=FALSE){
@@ -511,13 +513,12 @@ compute_ps <- function(sample_sizes = c(50, 100, 250, 500, 1000), n_rep = 10000)
   return(results_all)
 }
 
-# b <- a
 a <- compute_ps(sample_sizes = c(50, 100, 250, 500, 1000), n_rep = 10000)
 
 
-write.csv(a, "sim_results_all.csv", row.names=FALSE)
+#write.csv(a, "sim_results_all.csv", row.names=FALSE)
 
-a$p <- a$p_uc
+a <- read.csv("sim_results_all.csv")
 
 a <- a %>%
   mutate(p = pmin(p_uc, p.value_l, p.value_u, na.rm=TRUE))
@@ -526,17 +527,101 @@ ggplot(subset(a, test=="new" & distr=="standard_normal" & n==1000), aes(x=p)) +
   facet_wrap("quantile") +
   geom_histogram(binwidth = 0.05) 
 
-ggplot(subset(a, test=="old" & distr=="standard_normal" & n==500), aes(x=p)) +
+ggplot(subset(a, test=="new" & distr=="standard_normal" & quantile==0.5), aes(x=p)) +
+  facet_wrap("n") +
+  geom_histogram(binwidth = 0.05)
+
+
+######
+ggplot(subset(a, test=="new" & distr=="standard_normal"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_10"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+######
+
+
+ggplot(subset(a, test=="new_bonf_ind" & distr=="standard_normal"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05)
+
+fp_normal_bonf_ind <- a %>%
+  filter(test=="new_bonf_ind" & distr=="standard_normal" & n == 1000) %>%
+  group_by(quantile) %>%
+  summarize(mean(p < 0.05))
+
+fp_nb10_new <- a %>%
+  filter(test=="new" & distr=="negbin_10") %>%
+  group_by(n, quantile) %>%
+  summarize(mean(p < 0.05))
+
+fp_nb100_new <- a %>%
+  filter(test=="new" & distr=="negbin_100") %>%
+  group_by(n, quantile) %>%
+  summarize(mean(p < 0.05))
+
+fp_nb10_bonf_ind <- a %>%
+  filter(test=="new_bonf_ind" & distr=="negbin_10") %>%
+  group_by(n, quantile) %>%
+  summarize(mean(p < 0.05))
+
+ggplot(subset(a, test=="new" & distr=="standard_normal"), aes(x=p.value_l)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="standard_normal"), aes(x=p.value_u)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_10"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_50"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_100"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_100"), aes(x=p.value_u)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="negbin_100"), aes(x=p.value_l)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="new" & distr=="standard_normal" & n==500), aes(x=p.value_l)) +
   facet_wrap("quantile") +
   geom_histogram(binwidth = 0.1) 
 
-ggplot(subset(a, test=="old" & distr=="negbin_10" & n==500), aes(x=p)) +
+ggplot(subset(a, test=="old" & distr=="standard_normal" & n==500), aes(x=p)) +
+  facet_wrap("quantile") +
+  geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="old" & distr=="negbin_10" & n==1000), aes(x=p)) +
   facet_wrap("quantile") +
   geom_histogram(binwidth = 0.05) 
 
 ggplot(subset(a, test=="new" & distr=="negbin_10" & n==1000), aes(x=p)) +
   facet_wrap("quantile") +
   geom_histogram(binwidth = 0.05) 
+
+ggplot(subset(a, test=="old" & distr=="negbin_10"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(subset(a, test=="old" & distr=="negbin_50"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05)
+
+ggplot(subset(a, test=="old" & distr=="negbin_100"), aes(x=p)) +
+  facet_grid(rows=vars(quantile), cols=vars(n)) +
+  geom_histogram(binwidth = 0.05)
 
 ggplot(subset(a, test=="new" & distr=="negbin_20" & n==1000), aes(x=p)) +
   facet_wrap("quantile") +
@@ -581,14 +666,14 @@ get_cr <- function(sample_size, p, alpha){
 get_cr <- function(sample_size, p, alpha, alternative='less'){
   if(alternative == 'less'){
     C <- 0
-    while(pbinom(C, sample_size, p) < alpha) C <- C+1
-    C - 1
+    while(pbinom(C + 1, sample_size, p) < alpha) C <- C+1
+    # C - 1
   } else if(alternative == 'greater'){
     C <- sample_size
     while (1 - pbinom(C-1, sample_size, p) < alpha) C <- C -1
-    C + 1
+    # C + 1
   }
-
+  return(C)
 }
 
 get_cr(100, 0.1, 0.05, 'less')
@@ -607,6 +692,9 @@ get_cr(100, 0.1, 0.05)
 get_cr(500, 0.1, 0.05)
 get_cr(1000, 0.1, 0.05)
 pbinom(84, 1000, 0.1)
+
+get_cr(500, 0.1, 0.05, "greater")
+1 - pbinom(61, 500, 0.1)
 
 df <- data.frame(p=seq(0.1, 0.14, 0.005))
 df$y50 <- sapply(df$p, function(x){pbinom(get_cr(50, 0.1, 0.05), 50, x)})
@@ -654,11 +742,11 @@ ggplot(df, aes(x=p, y=value)) +
   labs(y="g(p)") +
   geom_hline(yintercept=0.05, linetype='dashed', size=1.05)
 
-df2 <- data.frame(q=seq(0, 1, 0.005))
-df2$y50 <- sapply(df2$q, function(x){1 - pbinom(get_cr(50, 0.1, 0.025, "greater")-1, 50, x)})
-df2$y100 <- sapply(df2$q, function(x){1 - pbinom(get_cr(100, 0.1, 0.025, "greater")-1, 100, x)})
-df2$y500 <- sapply(df2$q, function(x){1 - pbinom(get_cr(500, 0.1, 0.025, "greater")-1, 500, x)})
-df2$y1000 <- sapply(df2$q, function(x){1 - pbinom(get_cr(1000, 0.1, 0.025, "greater")-1, 1000, x)})
+df2 <- data.frame(q=seq(0, 0.4, 0.005))
+df2$y50 <- sapply(df2$q, function(x){1 - pbinom(get_cr(50, 0.1, 0.025, "greater"), 50, x)})
+df2$y100 <- sapply(df2$q, function(x){1 - pbinom(get_cr(100, 0.1, 0.025, "greater"), 100, x)})
+df2$y500 <- sapply(df2$q, function(x){1 - pbinom(get_cr(500, 0.1, 0.025, "greater"), 500, x)})
+df2$y1000 <- sapply(df2$q, function(x){1 - pbinom(get_cr(1000, 0.1, 0.025, "greater"), 1000, x)})
 
 df2 <- pivot_longer(df2, !q, names_to='n')
 df2$n <- factor(str_sub(df2$n, start=2), levels=c("50", "100", "500", "1000"))
@@ -667,6 +755,45 @@ ggplot(df2, aes(x=q, y=value)) +
   geom_line(aes(color=n), size=1.05) +
   labs(y="g(p)") +
   geom_hline(yintercept=0.05, linetype='dashed', size=1.05)
+
+
+#####
+# combined
+
+q = 0.1
+alpha = 0.05
+xmax = 0.4
+
+df <- data.frame(p=seq(0, xmax, 0.005))
+df$y50 <- sapply(df$p, function(x){pbinom(get_cr(50, q, alpha), 50, x)})
+df$y100 <- sapply(df$p, function(x){pbinom(get_cr(100, q, alpha), 100, x)})
+df$y500 <- sapply(df$p, function(x){pbinom(get_cr(500, q, alpha), 500, x)})
+df$y1000 <- sapply(df$p, function(x){pbinom(get_cr(1000, q, alpha), 1000, x)})
+
+df <- pivot_longer(df, !p, names_to='n')
+df$n <- factor(str_sub(df$n, start=2), levels=c("50", "100", "500", "1000"))
+df$test <- "left-tailed"
+
+df2 <- data.frame(p=seq(0, xmax, 0.005))
+df2$y50 <- sapply(df2$p, function(x){1 - pbinom(get_cr(50, q, alpha, "greater"), 50, x)})
+df2$y100 <- sapply(df2$p, function(x){1 - pbinom(get_cr(100, q, alpha, "greater"), 100, x)})
+df2$y500 <- sapply(df2$p, function(x){1 - pbinom(get_cr(500, q, alpha, "greater"), 500, x)})
+df2$y1000 <- sapply(df2$p, function(x){1 - pbinom(get_cr(1000, q, alpha, "greater"), 1000, x)})
+
+df2 <- pivot_longer(df2, !p, names_to='n')
+df2$n <- factor(str_sub(df2$n, start=2), levels=c("50", "100", "500", "1000"))
+df2$test <- "right-tailed"
+
+df <- bind_rows(df, df2)
+
+ggplot(df, aes(x=p, y=value)) +
+  facet_wrap("n") +
+  geom_line(aes(color=test), size=1.05) +
+  labs(y="g(p)") +
+  geom_hline(yintercept=0.05, linetype='dashed', size=1.05)
+
+######
+
 
 # combined
 
@@ -678,10 +805,10 @@ df$y100 <- sapply(df$p, function(x){pbinom(get_cr(100, q, 0.025), 100, x)})
 df$y500 <- sapply(df$p, function(x){pbinom(get_cr(500, q, 0.025), 500, x)})
 df$y1000 <- sapply(df$p, function(x){pbinom(get_cr(1000, q, 0.025), 1000, x)})
 
-df$y50_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(50, q, 0.025, "greater")-1, 50, x)})
-df$y100_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(100, q, 0.025, "greater")-1, 100, x)})
-df$y500_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(500, q, 0.025, "greater")-1, 500, x)})
-df$y1000_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(1000, q, 0.025, "greater")-1, 1000, x)})
+df$y50_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(50, q, 0.025, "greater"), 50, x)})
+df$y100_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(100, q, 0.025, "greater"), 100, x)})
+df$y500_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(500, q, 0.025, "greater"), 500, x)})
+df$y1000_2 <- sapply(df$p, function(x){1 - pbinom(get_cr(1000, q, 0.025, "greater"), 1000, x)})
 
 df$y50 <- df$y50 + df$y50_2
 df$y100 <- df$y100 + df$y100_2
